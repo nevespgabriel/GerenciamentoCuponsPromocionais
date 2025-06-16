@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "ESNext",                // aqui você usa módulo ES moderno
+    "rootDir": "./",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "moduleResolution": "node",        // importante para resolver módulos
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
