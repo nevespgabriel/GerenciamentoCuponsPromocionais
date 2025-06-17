@@ -49,7 +49,7 @@ export class CouponRepository {
    * @param updateData - The data to update
    * @returns The updated coupon document or null if not found
    */
-  async updateCouponBycode(
+  async updateCouponByCode(
     code: string,
     updateData: Partial<ICoupon>,
   ): Promise<ICoupon | null> {
@@ -67,7 +67,7 @@ export class CouponRepository {
    * @param code - The Coupon's code
    * @returns The deleted Coupon document or null if not found
    */
-  async deleteCouponBycode(code: string): Promise<ICoupon | null> {
+  async deleteCouponByCode(code: string): Promise<ICoupon | null> {
     try {
       return await MCoupon.findOneAndDelete({ code });
     } catch (error) {

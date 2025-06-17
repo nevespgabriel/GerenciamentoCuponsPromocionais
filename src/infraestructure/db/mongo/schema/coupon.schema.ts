@@ -16,11 +16,6 @@ export const couponSchema = new mongoose.Schema({
   expirationDate: {
     type: Date,
     required: true,
-    validate: {
-            validator: function (value: Date) {
-            return value > new Date();
-        }
-    }
   },
   status: {
     type: String,
