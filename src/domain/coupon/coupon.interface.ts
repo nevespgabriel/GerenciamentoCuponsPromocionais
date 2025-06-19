@@ -4,4 +4,5 @@ export interface ICoupon {
   expirationDate: Date;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
 }

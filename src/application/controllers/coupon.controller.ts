@@ -72,14 +72,15 @@ export class CouponController implements IController {
    * Create a new coupon
    */
   createCoupon = async (req: Request, res: Response): Promise<void> => {
-    const { code, discountPercent, expirationDate, status, createdAt } = req.body;
+    const { code, discountPercent, expirationDate, status, createdAt, updatedAt } = req.body;
     try {
       const newCoupon = await this.couponService.createCoupon({
-        code,
-        discountPercent,
-        expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
-        status,
+        code: code,
+        discountPercent: discountPercent,
+        expirationDate: expirationDate,
+        status: status ? status : 'pending',
         createdAt: createdAt ? new Date(createdAt) : new Date(),
+        updatedAt: updatedAt ? new Date(updatedAt) : new Date()
       });
       const plainCoupon: any = newCoupon;
       const responseData = {

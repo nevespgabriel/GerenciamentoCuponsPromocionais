@@ -7,6 +7,28 @@ export class CouponService {
   constructor(couponRepository: CouponRepository) {
     this.couponRepository = couponRepository;
   }
+
+   private scheduleValidation(coupon: ICoupon): void {
+    // This setTimeout simulates an asynchronous process that doesn't block the user's response.
+    setTimeout(async () => {
+      try {
+        let newStatus: 'valid' | 'invalid' = 'valid';
+
+        // Conditions for status to be invalid
+        if (coupon.discountPercent > 50 || new Date(coupon.expirationDate) < new Date()) {
+          newStatus = 'invalid';
+        }
+
+        //Changes the coupon's status in DB
+        await this.couponRepository.updateCouponByCode(coupon.code, { status: newStatus });
+
+      } catch (error) {
+        console.error(`[ASYNC-SERVICE] Falha ao validar o cupom ${coupon.code}:`, error);
+      }
+    }, 3000); // 3 seconds
+  }
+
+
   /**
    * Create a new coupon
    * @param couponData - The coupon data to create
@@ -32,7 +54,12 @@ export class CouponService {
         throw new Error('The status must be "pending", "valid" or "invalid".');
       }
 
-      return await this.couponRepository.createCoupon(couponData);
+      const newCoupon = await this.couponRepository.createCoupon(couponData); 
+
+      //The program does not await the validation to finish to proceed
+      this.scheduleValidation(newCoupon);
+
+      return newCoupon;
     } catch (error) {
       throw new Error(`Error creating coupon: ${(error as Error).message}`);
     }
