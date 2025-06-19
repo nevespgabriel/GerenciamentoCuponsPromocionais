@@ -3,7 +3,7 @@ import { CouponRepository } from '../../../infraestructure/repository/coupon.rep
 import { ICoupon } from '../../../domain/coupon/coupon.interface';
 
 // Simulates the entire coupon.repository class
-jest.mock('../../../src/infraestructure/repository/coupon.repository');
+jest.mock('../../../infraestructure/repository/coupon.repository');
 
 describe('CouponService - Unit Tests', () => {
   let couponService: CouponService;
@@ -93,36 +93,53 @@ describe('CouponService - Unit Tests', () => {
   
   // Specific tests for async validation method
   describe('scheduleValidation', () => {
-    
     jest.useFakeTimers(); //jest time control
-
+  
     it('should update status to "invalid" if discount is over 50', async () => {
+      // Arrange
+      const coupon: ICoupon = {
+        code: 'DKSAS1',
+        discountPercent: 51,
+        expirationDate: new Date('2027-12-31'),
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      mockCouponRepository.findCouponByCode.mockResolvedValue(null);
+      mockCouponRepository.createCoupon.mockResolvedValue(coupon);
 
-      const coupon: ICoupon = { code: 'DKSAS1', discountPercent: 51, expirationDate: new Date('2027-12-06T19:42:00Z') } as ICoupon;
-      const serviceInstance = new CouponService(mockCouponRepository);
-
-      await serviceInstance.createCoupon(coupon);
-
-      jest.advanceTimersByTime(3000); //3 seconds passes to activate the method
-
-      await Promise.resolve();
-
-      expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith('DKSAS1', { status: 'invalid' }); //Verificates if the repository was called to update to invalid
+      await couponService.createCoupon(coupon);
+      await jest.runAllTimersAsync();
+  
+      // Assert
+      expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith(
+        'DKSAS1',
+        { status: 'invalid' }
+      ); //Verifies if the repository was called to update to invalid
     });
-
+  
     it('should update status to "valid" if all conditions are met', async () => {
-        // Arrange
-        const coupon: ICoupon = { code: 'DKSAS1', discountPercent: 20, expirationDate: new Date('2027-12-06T19:42:00Z')  } as ICoupon;
-        const serviceInstance = new CouponService(mockCouponRepository);
+      // Arrange
+      const coupon: ICoupon = {
+        code: 'DKSAS1',
+        discountPercent: 20,
+        expirationDate: new Date('2027-12-31'),
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      mockCouponRepository.findCouponByCode.mockResolvedValue(null);
+      mockCouponRepository.createCoupon.mockResolvedValue(coupon);
+      
+      await couponService.createCoupon(coupon);
+      await jest.runAllTimersAsync();
 
-        //Create coupon was mocked in the last test
-        mockCouponRepository.findCouponByCode.mockResolvedValue(null);
-        mockCouponRepository.createCoupon.mockResolvedValue(coupon);
-        await serviceInstance.createCoupon(coupon);
-        jest.advanceTimersByTime(3000);
-        await Promise.resolve();
-
-        expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith('DKSAS1', { status: 'valid' });
+      expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith(
+        'DKSAS1',
+        { status: 'valid' }
+      );
     });
   });
 
