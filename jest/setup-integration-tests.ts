@@ -1,4 +1,4 @@
-import { bootstrapTest } from '../src/__tests__/testUtils';
+import { bootstrapTest } from '../src/__tests__/utils/testUtils';
 import { Server } from '../src/domain/server/server';
 import { MongooseDatabase } from './setup-db';
 

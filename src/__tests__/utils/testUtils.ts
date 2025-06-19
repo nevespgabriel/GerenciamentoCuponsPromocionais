@@ -1,5 +1,5 @@
-import { MongooseDatabase } from '../../jest/setup-db';
-import { app } from './configApp';
+import { MongooseDatabase } from '../../../jest/setup-db';
+import { app } from '../configApp';
 
 export async function bootstrapTest() {
   const DATABASE_URI = String(process.env.DATABASE_URI || '');
