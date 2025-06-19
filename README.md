@@ -1,5 +1,11 @@
 # 🏷️ API de Gerenciamento de Cupons Promocionais
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Node.js](https://img.shields.io/badge/Node.js-20.x-blue?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
+![Jest](https://img.shields.io/badge/Tests-Jest-red?logo=jest)
+![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
+
 Este projeto é uma **API RESTful** para gerenciamento de cupons de desconto. Ela permite **criar**, **consultar**, **atualizar** e **deletar** cupons promocionais.
 
 A arquitetura segue os princípios de **Domain-Driven Design (DDD)** e está preparada para rodar localmente ou em containers Docker, com suporte completo a testes e validações assíncronas.
@@ -15,35 +21,53 @@ A arquitetura segue os princípios de **Domain-Driven Design (DDD)** e está pre
 
 ---
 
-## 📦 Como instalar dependências com Yarn
+## 📦 Como Instalar Dependências
+
+Para instalar todas as bibliotecas e pacotes necessários, navegue até a pasta raiz e execute:
 
 ```bash
 yarn install
-🚀 Como rodar localmente (modo desenvolvimento)
-1. Configurar o ambiente
-Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
+```
 
-env
+---
 
+## 🚀 Como Rodar Localmente (Modo Desenvolvimento)
+
+### 1. Configurar o Ambiente
+
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+
+```env
 PORT=3000
 DATABASE_URI="mongodb://localhost:27017/coupons_db"
 NODE_ENV=development
-2. Iniciar o banco de dados
-Garanta que o MongoDB esteja rodando localmente e acessível via DATABASE_URI.
+```
 
-3. Iniciar o servidor
-bash
+### 2. Iniciar o Banco de Dados
 
+Garanta que o MongoDB esteja rodando localmente e acessível através da `DATABASE_URI`.
+
+### 3. Iniciar o Servidor
+
+Execute o comando abaixo para iniciar a aplicação. O servidor reiniciará automaticamente a cada alteração.
+
+```bash
 yarn dev
-Se tudo estiver correto, a aplicação estará disponível em:
+```
 
-arduino
+Se tudo estiver correto, a aplicação estará disponível em: `http://localhost:3000`
 
-http://localhost:3000
-🐳 Como subir com Docker (docker-compose up -d)
-1. Dockerfile
-dockerfile
+---
 
+## 🐳 Como Subir com Docker
+
+Este método cria um ambiente completo e isolado com a aplicação e o banco de dados.
+
+### 1. Dockerfile
+
+Garanta que seu `Dockerfile` esteja configurado para produção:
+
+```dockerfile
 # Estágio 1: Builder
 FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
@@ -58,11 +82,15 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
 EXPOSE 3000
-CMD ["node", "dist/app.js"]
-2. docker-compose.yml
-yaml
+CMD [ "node", "dist/app.js" ]
+```
 
-version: '3.8'
+### 2. docker-compose.yml
+
+Este arquivo orquestra a subida dos contêineres:
+
+```yaml
+version: "3.8"
 
 services:
   app:
@@ -95,52 +123,69 @@ volumes:
 networks:
   app-network:
     driver: bridge
-3. Subir os containers
-bash
+```
 
-docker-compose up -d
-Para parar os containers:
+### 3. Subir os Contêineres
 
-bash
+Execute o comando abaixo na raiz do projeto:
 
-docker-compose down
-🧪 Como rodar os testes (yarn test)
-bash
+```bash
+docker compose up -d
+```
 
+Para parar os contêineres, utilize:
+
+```bash
+docker compose down
+```
+
+---
+
+## 🧪 Como Rodar os Testes
+
+Para executar a suíte completa de testes unitários e de integração, use o comando:
+
+```bash
 yarn test
-Os testes são localizados em arquivos com sufixos .spec.ts ou .test.ts dentro da pasta tests.
+```
 
-🧱 Descrição da estrutura DDD aplicada
-txt
+Os testes são localizados em arquivos com sufixos `.spec.ts` ou `.test.ts` dentro da pasta `__tests__`.
 
+---
+
+## 🧱 Descrição da Estrutura DDD Aplicada
+
+A aplicação segue uma arquitetura em camadas linear, onde as dependências fluem em uma única direção para garantir o desacoplamento.
+
+```
 src/
-├── application/        # Interface com o mundo externo
+├── application/      # Interface com o mundo externo
 │   └── controllers/    # Recebem e tratam as requisições HTTP
 │
-├── domain/             # Lógica de negócio e orquestração
-│   ├── services/       # Casos de uso (criação, validação, regras de negócio, etc.)
-│   └── interfaces/     # Contratos
-│   └── entities/       # Entidades
+├── domain/           # Lógica de negócio e orquestração
+│   ├── services/       # Casos de uso (criação, validação, regras de negócio)
+│   ├── interfaces/     # Contratos de dados e repositórios
+│   └── events/         # Eventos de domínio
 │
-├── infrastructure/     # Detalhes técnicos e integração externa
+└── infrastructure/   # Detalhes técnicos e integração externa
     ├── repository/     # Implementação dos repositórios (ex: Mongoose)
     └── db/             # Configuração do banco com models e schemas
-🔁 Explicação da lógica de validação simulada
+```
+
+---
+
+## 🔁 Explicação da Lógica de Validação Simulada
+
 A API aplica um mecanismo de validação assíncrona simulada para acelerar a criação de cupons e realizar validações mais pesadas posteriormente.
 
-Etapas:
-Criação imediata
-O endpoint POST /api/coupons realiza validações básicas e salva o cupom com status pending.
+**Etapas:**
 
-Resposta instantânea
-O cliente recebe uma resposta 201 Created sem esperar a validação completa. No documento criado, o status será 'pending'.
+1.  **Criação imediata:** O endpoint `POST /api/coupons` realiza validações básicas e salva o cupom com o status `pending`.
 
-Agendamento da validação
-A função scheduleValidation() é chamada com setTimeout (3 segundos), simulando um worker.
+2.  **Resposta instantânea:** O cliente recebe uma resposta `201 Created` sem esperar a validação completa. No documento criado, o status será `'pending'`.
 
-Validação secundária
-Após o delay, regras adicionais são aplicadas (ex: desconto acima de 50%).
+3.  **Agendamento da validação:** A função `scheduleValidation()` é chamada com `setTimeout` (3 segundos), simulando um _worker_.
 
-Atualização do status
-O status do cupom é atualizado para valid ou invalid no banco.
-```
+4.  **Validação secundária:** Após o delay, regras adicionais são aplicadas (ex: desconto acima de 50%).
+
+5.  **Atualização do status:** O status do cupom é atualizado para `'valid'` ou `'invalid'` no banco de dados.
