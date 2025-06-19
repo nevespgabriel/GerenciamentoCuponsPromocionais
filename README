@@ -28,21 +28,22 @@ env
 PORT=3000
 DATABASE_URI="mongodb://localhost:27017/coupons_db"
 NODE_ENV=development
-
 2. Iniciar o banco de dados
 Garanta que o MongoDB esteja rodando localmente e acessível via DATABASE_URI.
 
 3. Iniciar o servidor
+bash
 
 yarn dev
 Se tudo estiver correto, a aplicação estará disponível em:
+
+arduino
 
 http://localhost:3000
 🐳 Como subir com Docker (docker-compose up -d)
 1. Dockerfile
 dockerfile
-Copiar
-Editar
+
 # Estágio 1: Builder
 FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
@@ -60,8 +61,7 @@ EXPOSE 3000
 CMD ["node", "dist/app.js"]
 2. docker-compose.yml
 yaml
-Copiar
-Editar
+
 version: '3.8'
 
 services:
@@ -96,21 +96,22 @@ networks:
   app-network:
     driver: bridge
 3. Subir os containers
+bash
 
 docker-compose up -d
-
-
 Para parar os containers:
 
+bash
+
 docker-compose down
-
-
 🧪 Como rodar os testes (yarn test)
+bash
 
 yarn test
 Os testes são localizados em arquivos com sufixos .spec.ts ou .test.ts dentro da pasta tests.
 
 🧱 Descrição da estrutura DDD aplicada
+txt
 
 src/
 ├── application/        # Interface com o mundo externo
@@ -124,7 +125,6 @@ src/
 ├── infrastructure/     # Detalhes técnicos e integração externa
     ├── repository/     # Implementação dos repositórios (ex: Mongoose)
     └── db/             # Configuração do banco com models e schemas
-
 🔁 Explicação da lógica de validação simulada
 A API aplica um mecanismo de validação assíncrona simulada para acelerar a criação de cupons e realizar validações mais pesadas posteriormente.
 
@@ -133,7 +133,7 @@ Criação imediata
 O endpoint POST /api/coupons realiza validações básicas e salva o cupom com status pending.
 
 Resposta instantânea
-O cliente recebe uma resposta 201 Created sem esperar a validação completa. No documento criado aqui, o status será 'pending'
+O cliente recebe uma resposta 201 Created sem esperar a validação completa. No documento criado, o status será 'pending'.
 
 Agendamento da validação
 A função scheduleValidation() é chamada com setTimeout (3 segundos), simulando um worker.
