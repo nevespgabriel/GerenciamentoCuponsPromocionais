@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Serviço da nossa aplicação Node.js
+  app:
+    container_name: coupons_api
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Sobrescreve a URI do banco para usar o nome do serviço do MongoDB na rede Docker
+      DATABASE_URI: mongodb://mongo:27017/coupons_db
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+  # Serviço do banco de dados MongoDB
+  mongo:
+    container_name: mongo_db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
