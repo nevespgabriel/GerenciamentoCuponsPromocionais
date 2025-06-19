@@ -26,7 +26,17 @@ export class CouponController implements IController {
   getCoupons = async (req: Request, res: Response): Promise<void> => {
     try {
       const coupons = await this.couponService.listCoupons();
-      res.status(200).json(coupons);
+      const responseData = coupons.map(coupon => {
+        // Using 'any' to make the data transformation easier and avoid type errors.
+        const plainCoupon: any = coupon;
+
+        return {
+          ...plainCoupon,
+          // Using ?. to prevent errors if a date field is null or undefined.
+          expirationDate: plainCoupon.expirationDate?.toISOString(),
+        };
+      });
+      res.status(200).json(responseData);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -46,7 +56,13 @@ export class CouponController implements IController {
         res.status(404).json({ message: 'Coupon not found' });
         return;
       }
-      res.status(200).json(coupon);
+
+      const plainCoupon: any = coupon;
+      const responseData = {
+        ...plainCoupon,
+        expirationDate: plainCoupon.expirationDate?.toISOString(),
+      };
+      res.status(200).json(responseData);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -56,16 +72,21 @@ export class CouponController implements IController {
    * Create a new coupon
    */
   createCoupon = async (req: Request, res: Response): Promise<void> => {
-    const { code, discountPercent, expirationDate, createdAt } = req.body;
+    const { code, discountPercent, expirationDate, status, createdAt } = req.body;
     try {
-      const newcoupon = await this.couponService.createCoupon({
+      const newCoupon = await this.couponService.createCoupon({
         code,
         discountPercent,
-        expirationDate,
+        expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
         status,
         createdAt: createdAt ? new Date(createdAt) : new Date(),
       });
-      res.status(201).json(newcoupon);
+      const plainCoupon: any = newCoupon;
+      const responseData = {
+        ...plainCoupon,
+        expirationDate: plainCoupon.expirationDate?.toISOString(),
+      };
+      res.status(201).json(responseData);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
     }
@@ -86,7 +107,12 @@ export class CouponController implements IController {
         res.status(404).json({ message: 'Coupon not found' });
         return;
       }
-      res.status(200).json(updatedCoupon);
+      const plainCoupon: any = updatedCoupon;
+      const responseData = {
+        ...plainCoupon,
+        expirationDate: plainCoupon.expirationDate?.toISOString(),
+      };
+      res.status(200).json(responseData);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
     }

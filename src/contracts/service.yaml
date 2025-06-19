@@ -1,0 +1,295 @@
+openapi: 3.0.2
+info:
+  title: API coupons
+  description: Coupons microsservice.
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://example.com/support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+  - url: http://localhost
+
+tags:
+  - name: Coupons
+    description: User management operations
+
+paths:
+  /api/coupons:
+    get:
+      tags:
+        - Coupons
+      summary: Get all coupons
+      description: Retrieve a list of all coupons.
+      responses:
+        '200':
+          description: A list of coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coupon'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An unexpected error occurred on the server."
+    post:
+      tags:
+        - Coupons
+      summary: Create a new coupon
+      description: Add a new coupon to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCoupon'
+      responses:
+        '201':
+          description: Coupon created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+        '400':
+          description: Bad request
+          content:  
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data provided"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An unexpected error occurred on the server."
+
+  /api/coupons/{code}:
+    get:
+      tags:
+        - Coupons
+      summary: Get a coupon by code
+      description: Retrieve a coupon by their unique code.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The code of the coupon
+      responses:
+        '200':
+          description: Coupon found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+        '404':
+          description: Coupon not found
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Coupon not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An unexpected error occurred on the server."
+    put:
+      tags:
+        - Coupons
+      summary: Update a coupon
+      description: Update the information of an existing coupon by code.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The code of the coupon
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCoupon'
+      responses:
+        '200':
+          description: Coupon updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+        '404':
+          description: Coupon not found
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Coupon not found
+        '400':
+          description: Bad request
+          content:  # <--- ADICIONE ISTO
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bad request
+        '500':
+          description: Server error
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Server error
+    delete:
+      tags:
+        - Coupons
+      summary: Delete a coupon
+      description: Delete an existing coupon by code.
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The code of the coupon
+      responses:
+        '200':
+          description: Coupon deleted successfully
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Coupon deleted successfully
+        '404':
+          description: Coupon not found
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Coupon not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An unexpected error occurred on the server."
+
+components:
+  schemas:
+    Coupon:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The unique identifier of the coupon
+        discountPercent:
+          type: number
+          description: The discount percentage of the coupon
+        expirationDate:
+          type: string
+          format: date-time
+          description: The date the coupon expires
+        status:
+          type: string
+          description: The status that indicates de state of the coupon  
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the coupon was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the coupon was updated by last
+    NewCoupon:
+      type: object
+      required:
+        - code
+        - discountPercent
+        - expirationDate
+      properties:
+        code:
+          type: string
+          description: The unique identifier of the coupon
+        discountPercent:
+          type: number
+          description: The discount percentage of the coupon
+        expirationDate:
+          type: string
+          format: date-time
+          description: The date the coupon expires
+        status:
+          type: string
+          description: The status that indicates de state of the coupon  
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time the coupon was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: The date and time the coupon was updated by last
+    UpdateCoupon:
+      type: object
+      properties:
+        discountPercent:
+          type: number
+          description: The discount percentage of the coupon
+        expirationDate:
+          type: string
+          format: date-time
+          description: The date the coupon expires
+        status:
+          type: string
+          description: The status that indicates de state of the coupon  

@@ -24,7 +24,10 @@ export const couponSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    required: true,
     default: Date.now, // Automatically set the createdAt field if not provided
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now, // Automatically set the updatedAt field if not provided
   },
 });

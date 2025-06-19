@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2016",
-    "module": "ESNext",                // aqui você usa módulo ES moderno
+    "module": "commonjs",                // aqui você usa módulo ES moderno
     "rootDir": "./",
     "outDir": "./dist",
     "esModuleInterop": true,
