@@ -125,4 +125,91 @@ describe('CouponService - Unit Tests', () => {
         expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith('DKSAS1', { status: 'valid' });
     });
   });
+
+  describe('listCoupons', () => {
+    it('should return an array of coupons', async () => {
+
+      const mockCoupons = [{ code: 'DKSAS1' }, { code: 'DKSAS2' }] as ICoupon[];
+      mockCouponRepository.listCoupons.mockResolvedValue(mockCoupons);
+
+      const result = await couponService.listCoupons();
+
+      expect(result).toEqual(mockCoupons);
+      expect(result.length).toBe(2);
+      expect(mockCouponRepository.listCoupons).toHaveBeenCalled();
+    });
+
+    it('should return an empty array if no coupons exist', async () => {
+
+      mockCouponRepository.listCoupons.mockResolvedValue([]);
+
+      const result = await couponService.listCoupons();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('updateCouponByCode', () => {
+    it('should update the coupon successfully with valid data', async () => {
+
+      const existingCoupon = { code: 'DKSAS1', discountPercent: 10 } as ICoupon;
+      const updateData = { discountPercent: 20 };
+      const updatedCoupon = { ...existingCoupon, ...updateData };
+
+      mockCouponRepository.findCouponByCode.mockResolvedValue(existingCoupon);
+      mockCouponRepository.updateCouponByCode.mockResolvedValue(updatedCoupon);
+
+      const result = await couponService.updateCouponByCode('DKSAS1', updateData);
+
+      // Assert
+      expect(result).toEqual(updatedCoupon);
+      expect(mockCouponRepository.updateCouponByCode).toHaveBeenCalledWith('DKSAS1', updateData);
+    });
+
+    it('should throw an error if the coupon to update is not found', async () => {
+
+      mockCouponRepository.findCouponByCode.mockResolvedValue(null);
+
+      await expect(couponService.updateCouponByCode('DKSAS1', { discountPercent: 50 })).rejects.toThrow('Coupon not found');
+    });
+    
+    it('should throw an error for an out-of-range discount percent', async () => {
+
+        const existingCoupon = { code: 'DKSAS1' } as ICoupon;
+        mockCouponRepository.findCouponByCode.mockResolvedValue(existingCoupon);
+        const updateData = { discountPercent: 101 };
+
+        await expect(couponService.updateCouponByCode('DKSAS1', updateData)).rejects.toThrow('The discount percent must be a value between 1 and 100.');
+    });
+
+    it('should throw an error for an invalid status', async () => {
+
+        const existingCoupon = { code: 'DKSAS1' } as ICoupon;
+        mockCouponRepository.findCouponByCode.mockResolvedValue(existingCoupon);
+        const updateData = { status: 'expired' as any }; // Cast to any to bypass TS type checking for the test
+
+        await expect(couponService.updateCouponByCode('DKSAS1', updateData)).rejects.toThrow('The status must be "pending", "valid" or "invalid".');
+    });
+  });
+
+  describe('deleteCouponByCode', () => {
+    it('should delete a coupon successfully when it exists', async () => {
+
+      const mockCoupon = { code: 'DKSAS1' } as ICoupon;
+      mockCouponRepository.findCouponByCode.mockResolvedValue(mockCoupon);
+      mockCouponRepository.deleteCouponByCode.mockResolvedValue(mockCoupon);
+
+      const result = await couponService.deleteCouponByCode('DKSAS1');
+
+      expect(result).toEqual(mockCoupon);
+      expect(mockCouponRepository.deleteCouponByCode).toHaveBeenCalledWith('DKSAS1');
+    });
+
+    it('should throw a "Coupon not found" error when trying to delete a non-existent coupon', async () => {
+
+      mockCouponRepository.findCouponByCode.mockResolvedValue(null);
+
+      await expect(couponService.deleteCouponByCode('DKSAS1')).rejects.toThrow('Coupon not found');
+    });
+  });
 });
