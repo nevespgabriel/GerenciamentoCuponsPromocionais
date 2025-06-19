@@ -18,6 +18,7 @@ const app = new Server({
     new CouponController(new CouponService(new CouponRepository())),
   ],
   databaseURI: process.env.DATABASE_URI,
+  apiPrefix: '/api',
   apiSpecLocation: OPEN_API_SPEC_FILE_LOCATION,
 });
 

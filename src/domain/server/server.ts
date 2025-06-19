@@ -36,6 +36,7 @@ export class Server {
     corsWithCredentials?: boolean;
     middlewaresToStart?: Array<RequestHandler>;
     controllers?: Array<IController>;
+    apiPrefix?: string;
     apiSpecLocation?: string;
     databaseURI?: string;
     customizers?: Array<
@@ -55,7 +56,7 @@ export class Server {
 
     this.middlewares(this.middleWaresToStart);
 
-    this.routes(appInit.controllers || []);
+    this.routes(appInit.controllers || [], "/api");
 
     this.customizers();
   }
