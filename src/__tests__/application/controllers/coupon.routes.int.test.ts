@@ -1,42 +1,19 @@
 import request from 'supertest';
-import { Server } from '../../../domain/server/server';
-import { Application } from 'express';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { CouponController } from '../../../application/controllers/coupon.controller';
 import { CouponService } from '../../../domain/coupon/coupon.service';
 import { CouponRepository } from '../../../infraestructure/repository/coupon.repository';
 import { MCoupon } from '../../../infraestructure/db/mongo/models/coupon.model';
+import { app } from '../../../../jest/setup-integration-tests';
 
 describe('Coupon Routes - Integration Tests', () => {
-  let app: Application;
-  let mongoServer: MongoMemoryServer;
 
   // Before all tests, set up the in-memory database and the full application.
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
 
     // Instantiate the entire dependency chain
     const couponRepository = new CouponRepository();
     const couponService = new CouponService(couponRepository);
     const couponController = new CouponController(couponService);
-
-    const server = new Server({
-      port: 3001, // Use a different port for tests
-      controllers: [couponController],
-      databaseURI: mongoUri,
-      apiPrefix: '/api',
-    });
-
-    await server.databaseSetup();
-    app = server.app;
-  });
-
-  // After all tests, disconnect and stop the server.
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
   });
 
   // Before each test, clear the coupon collection.
@@ -50,9 +27,10 @@ describe('Coupon Routes - Integration Tests', () => {
         code: 'DSDKH1',
         discountPercent: 30,
         expirationDate: '2026-01-01T00:00:00Z',
+        status: 'pending',
       };
 
-      const response = await request(app)
+      const response = await request(app.app)
         .post('/api/coupons')
         .send(payload);
 
@@ -64,9 +42,9 @@ describe('Coupon Routes - Integration Tests', () => {
     });
 
     it('should return 400 if the coupon code already exists', async () => {
-        await request(app).post('/api/coupons').send({ code: 'DSDKH1', discountPercent: 10, expirationDate: '2099-01-01T00:00:00Z' });
+        await request(app.app).post('/api/coupons').send({ code: 'DSDKH1', discountPercent: 10, expirationDate: '2099-01-01T00:00:00Z' });
         
-        const response = await request(app)
+        const response = await request(app.app)
           .post('/api/coupons')
           .send({ code: 'DSDKH1', discountPercent: 15, expirationDate: '2099-01-01T00:00:00Z' });
 
@@ -81,7 +59,7 @@ describe('Coupon Routes - Integration Tests', () => {
         await MCoupon.create({ code: 'DSDKH1', discountPercent: 10, expirationDate: new Date() });
         await MCoupon.create({ code: 'DSDKH2', discountPercent: 20, expirationDate: new Date() });
 
-        const response = await request(app).get('/api/coupons');
+        const response = await request(app.app).get('/api/coupons');
 
         expect(response.status).toBe(200);
         expect(response.body).toBeInstanceOf(Array);
@@ -97,17 +75,17 @@ describe('Coupon Routes - Integration Tests', () => {
         
         await MCoupon.create({ code: 'DSDKH1', discountPercent: 10, expirationDate: new Date() });
 
-        const response = await request(app).get('/api/coupons/DSDKH1');
+        const response = await request(app.app).get('/api/coupons/DSDKH1');
     
         expect(response.status).toBe(200);
         expect(response.body.code).toBe('DSDKH1');
     });
 
     it('should return status 404 if coupon code does not exist', async () => {
-        const response = await request(app).get('/api/coupons/DSDKH1');
+        const response = await request(app.app).get('/api/coupons/DSDKH1');
 
         expect(response.status).toBe(404);
-        expect(response.body.message).toBe('Coupon not found');
+        expect(response.body.message).toBe('Error retrieving coupon by code: Coupon not found');
     });
   });
 
@@ -116,18 +94,18 @@ describe('Coupon Routes - Integration Tests', () => {
 
         await MCoupon.create({ code: 'DSDKH1', discountPercent: 10, expirationDate: new Date() });
 
-        const response = await request(app).delete('/api/coupons/DSDKH1');
+        const response = await request(app.app).delete('/api/coupons/DSDKH1');
     
         expect(response.status).toBe(200);
         expect(response.body.message).toBe('Coupon deleted successfully');
 
-        const findResponse = await request(app).get('/api/coupons/DSDKH1');
+        const findResponse = await request(app.app).get('/api/coupons/DSDKH1');
         expect(findResponse.status).toBe(404);
     });
 
     it('should return status 404 if trying to delete a non-existent coupon', async () => {
 
-        const response = await request(app).delete('/api/coupons/DSDKH1');
+        const response = await request(app.app).delete('/api/coupons/DSDKH1');
         
         expect(response.status).toBe(404);
     });

@@ -12,6 +12,7 @@ export class CouponController implements IController {
     this.initRoutes();
   }
 
+
   initRoutes() {
     this.router.get('/coupons', this.getCoupons);
     this.router.get('/coupons/:code', this.getCouponByCode);
@@ -26,16 +27,7 @@ export class CouponController implements IController {
   getCoupons = async (req: Request, res: Response): Promise<void> => {
     try {
       const coupons = await this.couponService.listCoupons();
-      const responseData = coupons.map(coupon => {
-        // Using 'any' to make the data transformation easier and avoid type errors.
-        const plainCoupon: any = coupon;
-
-        return {
-          ...plainCoupon,
-          // Using ?. to prevent errors if a date field is null or undefined.
-          expirationDate: plainCoupon.expirationDate?.toISOString(),
-        };
-      });
+      const responseData = coupons.map((coupon: any) => coupon._doc);
       res.status(200).json(responseData);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
@@ -45,26 +37,22 @@ export class CouponController implements IController {
   /**
    * Fetch a coupon by code
    */
-  getCouponByCode = async (
-    req: Request<{ code: string }>,
-    res: Response,
-  ): Promise<void> => {
+  getCouponByCode = async (req: Request, res: Response): Promise<void> => {
     const { code } = req.params;
     try {
-      const coupon = await this.couponService.getCouponByCode(code);
+      const coupon: any = await this.couponService.getCouponByCode(code);
       if (!coupon) {
         res.status(404).json({ message: 'Coupon not found' });
         return;
       }
-
-      const plainCoupon: any = coupon;
-      const responseData = {
-        ...plainCoupon,
-        expirationDate: plainCoupon.expirationDate?.toISOString(),
-      };
-      res.status(200).json(responseData);
+      res.status(200).json(coupon._doc);
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      const err = error as Error;
+      if (err.message.includes('not found')) {
+        res.status(404).json({ message: err.message });
+      } else {
+        res.status(500).json({ error: err.message });
+      }
     }
   };
 
@@ -82,12 +70,14 @@ export class CouponController implements IController {
         createdAt: createdAt ? new Date(createdAt) : new Date(),
         updatedAt: updatedAt ? new Date(updatedAt) : new Date()
       });
+
       const plainCoupon: any = newCoupon;
       const responseData = {
         ...plainCoupon,
         expirationDate: plainCoupon.expirationDate?.toISOString(),
       };
-      res.status(201).json(responseData);
+      
+      res.status(201).json(responseData._doc);
     } catch (error) {
       res.status(400).json({ error: (error as Error).message });
     }
@@ -96,26 +86,25 @@ export class CouponController implements IController {
   /**
    * Update a coupon's information by code
    */
-  updateCoupon = async (
-    req: Request<{ code: string }>,
-    res: Response,
-  ): Promise<void> => {
+  updateCoupon = async (req: Request, res: Response): Promise<void> => {
     const { code } = req.params;
-    const updateData = req.body;
     try {
-      const updatedCoupon = await this.couponService.updateCouponByCode(code, updateData);
+      const updatedCoupon: any = await this.couponService.updateCouponByCode(
+        code,
+        req.body,
+      );
       if (!updatedCoupon) {
         res.status(404).json({ message: 'Coupon not found' });
         return;
       }
-      const plainCoupon: any = updatedCoupon;
-      const responseData = {
-        ...plainCoupon,
-        expirationDate: plainCoupon.expirationDate?.toISOString(),
-      };
-      res.status(200).json(responseData);
+      res.status(200).json(updatedCoupon._doc);
     } catch (error) {
-      res.status(400).json({ error: (error as Error).message });
+      const err = error as Error;
+      if (err.message.includes('not found')) {
+        res.status(404).json({ message: err.message });
+      } else {
+        res.status(400).json({ error: err.message });
+      }
     }
   };
 
@@ -128,13 +117,19 @@ export class CouponController implements IController {
   ): Promise<void> => {
     const { code } = req.params;
     try {
+      console.log("PROCURANDO");
       const deletedCoupon = await this.couponService.deleteCouponByCode(code);
+      console.log("NAO ACHOU");
       if (!deletedCoupon) {
         res.status(404).json({ message: 'Coupon not found' });
         return;
       }
       res.status(200).json({ message: 'Coupon deleted successfully' });
     } catch (error) {
+      const err = error as Error;
+      if (err.message.includes('not found')) {
+        res.status(404).json({ message: err.message });
+      } 
       res.status(500).json({ error: (error as Error).message });
     }
   };

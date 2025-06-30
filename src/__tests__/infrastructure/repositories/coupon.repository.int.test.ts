@@ -1,23 +1,13 @@
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { CouponRepository } from '../../../infraestructure/repository/coupon.repository';
 import { MCoupon } from '../../../infraestructure/db/mongo/models/coupon.model';
 import { ICoupon } from '../../../domain/coupon/coupon.interface';
 
 describe('CouponRepository - Integration Tests', () => {
-  let mongoServer: MongoMemoryServer;
   let couponRepository: CouponRepository;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    await mongoose.connect(mongoUri);
     couponRepository = new CouponRepository();
-  });
-
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    await MCoupon.createIndexes();
   });
 
   beforeEach(async () => {
@@ -40,7 +30,7 @@ describe('CouponRepository - Integration Tests', () => {
       expect(savedCoupon.code).toBe(couponData.code);
       expect(savedCoupon.status).toBe('pending');
 
-      const foundInDb = await MCoupon.findById(savedCoupon.code);
+      const foundInDb = await MCoupon.findOne({ code: savedCoupon.code });
       expect(foundInDb).not.toBeNull();
     });
 
